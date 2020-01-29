@@ -1,0 +1,28 @@
+version: 0.2
+
+env:
+  variables:
+    MAIA_GRADLE_INIT_SCRIPTS_VERSION: "0.3.24"
+  parameter-store:
+    GITHUB_PUBLISH_TOKEN: "/secret/GITHUB_PUBLISH_TOKEN"
+    COGNITO_NEXUS_PULL_CLIENT_ID: "/secret/COGNITO_NEXUS_PULL_CLIENT_ID"
+    COGNITO_NEXUS_PULL_CLIENT_SECRET: "/secret/COGNITO_NEXUS_PULL_CLIENT_SECRET"
+    COGNITO_NEXUS_PUSH_CLIENT_ID: "/secret/COGNITO_NEXUS_PUSH_CLIENT_ID"
+    COGNITO_NEXUS_PUSH_CLIENT_SECRET: "/secret/COGNITO_NEXUS_PUSH_CLIENT_SECRET"
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+    commands:
+      - |-
+        mkdir -p ~/.gradle
+        curl -s -L -X GET -o /tmp/maia-gradle-init-scripts-${MAIA_GRADLE_INIT_SCRIPTS_VERSION}.tgz -H "Authorization: token ${GITHUB_PUBLISH_TOKEN}" \
+          https://maven.pkg.github.com/maiatechio/maia-developer-tooling/io/maiatech/gradle/maia-gradle-init-scripts/${MAIA_GRADLE_INIT_SCRIPTS_VERSION}/maia-gradle-init-scripts-${MAIA_GRADLE_INIT_SCRIPTS_VERSION}.tgz
+        tar xzf /tmp/maia-gradle-init-scripts-${MAIA_GRADLE_INIT_SCRIPTS_VERSION}.tgz -C ~/.gradle/
+        chmod +x ./build.sh ./gradlew
+
+  build:
+    commands:
+      - RESOLVED_BRANCH=$(git for-each-ref | grep ${CODEBUILD_RESOLVED_SOURCE_VERSION} | grep "refs/heads/" | sed "s/.*\///") && if [ $(echo "$RESOLVED_BRANCH" | wc -l) -ne 1 ]; then echo "Found other than 1 branch with sha, not going further with build (empty branch created via JIRA?)"; exit 0; else git checkout $RESOLVED_BRANCH; fi
+      - ./build.sh
