@@ -18,4 +18,4 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 ${DIR}/gradlew release -Prelease.disableChecks -Prelease.pushTagsOnly -Prelease.ignoreUncommittedChanges
 
 # publish all artifacts if their respective tests passed, CodeBuild will fail if all tasks do not pass
-${DIR}/gradlew --continue test publishAllPublicationsToMaiaNexusRepository -Prelease.ignoreUncommittedChanges
+${DIR}/gradlew --continue test publishAllPublicationsToGitHubPackagesRepository -Prelease.ignoreUncommittedChanges
